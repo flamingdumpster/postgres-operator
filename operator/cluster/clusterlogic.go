@@ -51,13 +51,13 @@ func AddCluster(clientset *kubernetes.Clientset, client *rest.RESTClient, cl *cr
 
 	//create the primary service
 	serviceFields := ServiceTemplateFields{
-		Name:        cl.Spec.Name,
-		ServiceName: cl.Spec.Name,
-		ClusterName: cl.Spec.Name,
-		Port:        cl.Spec.Port,
+		Name:         cl.Spec.Name,
+		ServiceName:  cl.Spec.Name,
+		ClusterName:  cl.Spec.Name,
+		Port:         cl.Spec.Port,
 		PGBadgerPort: cl.Spec.PGBadgerPort,
 		ExporterPort: cl.Spec.ExporterPort,
-		ServiceType: st,
+		ServiceType:  st,
 	}
 
 	err = CreateService(clientset, &serviceFields, namespace)
@@ -135,6 +135,7 @@ func AddCluster(clientset *kubernetes.Clientset, client *rest.RESTClient, cl *cr
 		ContainerResources:      operator.GetContainerResourcesJSON(&cl.Spec.ContainerResources),
 		ConfVolume:              operator.GetConfVolume(clientset, cl, namespace),
 		CollectAddon:            operator.GetCollectAddon(clientset, namespace, &cl.Spec),
+		CollectVolume:           operator.GetCollectVolume(clientset, cl, namespace),
 		BadgerAddon:             operator.GetBadgerAddon(clientset, namespace, cl, cl.Spec.Name),
 		PgmonitorEnvVars:        operator.GetPgmonitorEnvVars(cl.Spec.UserLabels[config.LABEL_COLLECT]),
 		PgbackrestEnvVars: operator.GetPgbackrestEnvVars(cl.Labels[config.LABEL_BACKREST], cl.Spec.ClusterName, cl.Spec.Name,
@@ -357,6 +358,7 @@ func Scale(clientset *kubernetes.Clientset, client *rest.RESTClient, replica *cr
 		ContainerResources:      operator.GetContainerResourcesJSON(&cs),
 		NodeSelector:            operator.GetReplicaAffinity(cluster.Spec.UserLabels, replica.Spec.UserLabels),
 		CollectAddon:            operator.GetCollectAddon(clientset, namespace, &cluster.Spec),
+		CollectVolume:           operator.GetCollectVolume(clientset, cluster, namespace),
 		BadgerAddon:             operator.GetBadgerAddon(clientset, namespace, cluster, replica.Spec.Name),
 		PgmonitorEnvVars:        operator.GetPgmonitorEnvVars(cluster.Spec.UserLabels[config.LABEL_COLLECT]),
 		PgbackrestEnvVars: operator.GetPgbackrestEnvVars(cluster.Labels[config.LABEL_BACKREST], replica.Spec.ClusterName, replica.Spec.Name,
@@ -407,7 +409,6 @@ func Scale(clientset *kubernetes.Clientset, client *rest.RESTClient, replica *cr
 			EventType: events.EventScaleCluster,
 		},
 		Clustername:       cluster.Spec.UserLabels[config.LABEL_REPLICA_NAME],
-		Clusteridentifier: cluster.Spec.UserLabels[config.LABEL_PG_CLUSTER_IDENTIFIER],
 		Replicaname:       cluster.Spec.UserLabels[config.LABEL_PG_CLUSTER],
 	}
 
@@ -482,7 +483,6 @@ func publishScaleError(namespace string, username string, cluster *crv1.Pgcluste
 		},
 		Clustername:       cluster.Spec.UserLabels[config.LABEL_REPLICA_NAME],
 		Replicaname:       cluster.Spec.UserLabels[config.LABEL_PG_CLUSTER],
-		Clusteridentifier: cluster.Spec.UserLabels[config.LABEL_PG_CLUSTER_IDENTIFIER],
 	}
 
 	err := events.Publish(f)
@@ -504,7 +504,6 @@ func publishDeleteCluster(namespace, username, clusterName, identifier string) {
 			EventType: events.EventDeleteCluster,
 		},
 		Clustername:       clusterName,
-		Clusteridentifier: identifier,
 	}
 
 	err := events.Publish(f)

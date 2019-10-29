@@ -2,7 +2,7 @@
 title: "Install Operator Using Bash"
 date:
 draft: false
-weight: 300
+weight: 200
 ---
 
 A full installation of the Operator includes the following steps:
@@ -31,7 +31,7 @@ The Operator follows a golang project structure, you can create a structure as f
     cd $HOME/odev/src/github.com/crunchydata
     git clone https://github.com/CrunchyData/postgres-operator.git
     cd postgres-operator
-	git checkout 4.1.0
+	git checkout v4.1.0
 
 
 This creates a directory structure under your HOME directory name *odev* and clones the current Operator version to that structure.  
@@ -42,6 +42,9 @@ Environment variables control aspects of the Operator installation.  You can cop
 
     cat $HOME/odev/src/github.com/crunchydata/postgres-operator/examples/envs.sh >> $HOME/.bashrc
     source $HOME/.bashrc
+
+To manually configure the environment variables, refer to the [environment documentation]({{< relref "common-env.md" >}}).
+
 
 For various scripts used by the Operator, the *expenv* utility is required, download this utility from the Github Releases page, and place it into your PATH (e.g. $HOME/odev/bin).
 {{% notice tip %}}There is also a Makefile target that includes is *expenv* and several other dependencies that are only needed if you plan on building from source: 
@@ -81,7 +84,7 @@ created as part of the default installation.
 
 {{% notice warning %}}In Kuberenetes versions prior to 1.12 (including Openshift up through 3.11), there is a limitation that requires an extra step during installation for the operator to function properly with watched namespaces. This limitation does not exist when using Kubernetes 1.12+. When a list of namespaces are provided through the NAMESPACE environment variable, the setupnamespaces.sh script handles the limitation properly in both the bash and ansible installation.
 
-However, if the user wishes to add a new watched namespace after installation, Where the user would normally use _pgo create namespace_ to add the new namespace, they should instead run the add-targeted-namespace.sh script, regardless of installation method. Again, this is only required when running on a Kuberenetes distribution whose version is below 1.12. In Kubernetes version 1.12+ the _pgo create namespace_ command works as expected.
+However, if the user wishes to add a new watched namespace after installation, where the user would normally use pgo create namespace to add the new namespace, they should instead run the add-targeted-namespace.sh script or they may give themselves cluster-admin privileges instead of having to run setupnamespaces.sh script. Again, this is only required when running on a Kuberenetes distribution whose version is below 1.12. In Kubernetes version 1.12+ the pgo create namespace command works as expected.
 
 {{% /notice %}}
 

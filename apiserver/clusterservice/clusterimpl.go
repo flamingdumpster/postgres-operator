@@ -406,7 +406,6 @@ func TestCluster(name, selector, ns, pgouser string, allFlag bool) msgs.ClusterT
 				EventType: events.EventTestCluster,
 			},
 			Clustername:       c.Name,
-			Clusteridentifier: c.ObjectMeta.Labels[config.LABEL_PG_CLUSTER_IDENTIFIER],
 		}
 
 		err = events.Publish(f)
@@ -714,6 +713,7 @@ func CreateCluster(request *msgs.CreateClusterRequest, ns, pgouser string) msgs.
 			resp.Results = append(resp.Results, err.Error())
 			return resp
 		}
+		newInstance.Spec.CollectSecretName = clusterName + crv1.CollectSecretSuffix
 
 		// Create Backrest secret for S3/SSH Keys:
 		// We make this regardless if backrest is enabled or not because

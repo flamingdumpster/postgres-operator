@@ -38,13 +38,13 @@ import (
 
 // ServiceTemplateFields ...
 type ServiceTemplateFields struct {
-	Name        string
-	ServiceName string
-	ClusterName string
-	Port        string
+	Name         string
+	ServiceName  string
+	ClusterName  string
+	Port         string
 	PGBadgerPort string
 	ExporterPort string
-	ServiceType string
+	ServiceType  string
 }
 
 // ReplicaSuffix ...
@@ -106,7 +106,6 @@ func AddClusterBase(clientset *kubernetes.Clientset, client *rest.RESTClient, cl
 			EventType: events.EventCreateCluster,
 		},
 		Clustername:       cl.ObjectMeta.Name,
-		Clusteridentifier: cl.ObjectMeta.Labels[config.LABEL_PG_CLUSTER_IDENTIFIER],
 		WorkflowID:        cl.ObjectMeta.Labels[config.LABEL_WORKFLOW_ID],
 	}
 
@@ -236,7 +235,6 @@ func DeleteClusterBase(clientset *kubernetes.Clientset, restclient *rest.RESTCli
 			EventType: events.EventDeleteCluster,
 		},
 		Clustername:       cl.Spec.Name,
-		Clusteridentifier: cl.ObjectMeta.Labels[config.LABEL_PG_CLUSTER_IDENTIFIER],
 	}
 
 	err = events.Publish(f)
@@ -289,13 +287,13 @@ func ScaleBase(clientset *kubernetes.Clientset, client *rest.RESTClient, replica
 
 	serviceName := replica.Spec.ClusterName + "-replica"
 	serviceFields := ServiceTemplateFields{
-		Name:        serviceName,
-		ServiceName: serviceName,
-		ClusterName: replica.Spec.ClusterName,
-		Port:        cluster.Spec.Port,
+		Name:         serviceName,
+		ServiceName:  serviceName,
+		ClusterName:  replica.Spec.ClusterName,
+		Port:         cluster.Spec.Port,
 		PGBadgerPort: cluster.Spec.PGBadgerPort,
 		ExporterPort: cluster.Spec.ExporterPort,
-		ServiceType: st,
+		ServiceType:  st,
 	}
 
 	err = CreateService(clientset, &serviceFields, namespace)
@@ -342,7 +340,6 @@ func ScaleDownBase(clientset *kubernetes.Clientset, client *rest.RESTClient, rep
 			EventType: events.EventScaleDownCluster,
 		},
 		Clustername:       replica.Spec.ClusterName,
-		Clusteridentifier: replica.ObjectMeta.Labels[config.LABEL_PG_CLUSTER_IDENTIFIER],
 	}
 
 	err = events.Publish(f)
@@ -402,7 +399,6 @@ func publishClusterCreateFailure(cl *crv1.Pgcluster, errorMsg string) {
 			EventType: events.EventCreateClusterFailure,
 		},
 		Clustername:       cl.ObjectMeta.Name,
-		Clusteridentifier: cl.ObjectMeta.Labels[config.LABEL_PG_CLUSTER_IDENTIFIER],
 		ErrorMessage:      errorMsg,
 		WorkflowID:        cl.ObjectMeta.Labels[config.LABEL_WORKFLOW_ID],
 	}

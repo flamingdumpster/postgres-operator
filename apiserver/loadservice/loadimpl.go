@@ -48,7 +48,7 @@ type loadJobTemplateFields struct {
 	PVCName            string
 	SecurityContext    string
 	ContainerResources string
-	PGUserSecret	   string
+	PGUserSecret       string
 }
 
 type containerResourcesTemplateFields struct {
@@ -196,7 +196,6 @@ func Load(request *msgs.LoadRequest, ns, pgouser string) msgs.LoadResponse {
 				EventType: events.EventLoad,
 			},
 			Clustername:       c.Name,
-			Clusteridentifier: c.ObjectMeta.Labels[config.LABEL_PG_CLUSTER_IDENTIFIER],
 			Loadconfig:        LoadCfg.TableToLoad,
 		}
 

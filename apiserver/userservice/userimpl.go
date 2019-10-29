@@ -21,10 +21,10 @@ import (
 	"fmt"
 	kerrors "k8s.io/apimachinery/pkg/api/errors"
 	"math/rand"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
-	"regexp"
 
 	crv1 "github.com/crunchydata/postgres-operator/apis/cr/v1"
 	"github.com/crunchydata/postgres-operator/apiserver"
@@ -168,7 +168,7 @@ func UpdateUser(request *msgs.UpdateUserRequest, pgouser string) msgs.UpdateUser
 				}
 				log.Debugf("expiring user %s", request.Username)
 			}
-			
+
 			if request.Expired != "" {
 				results := callDB(info, d.ObjectMeta.Name, request.Expired)
 				if len(results) > 0 {
@@ -220,7 +220,6 @@ func UpdateUser(request *msgs.UpdateUserRequest, pgouser string) msgs.UpdateUser
 						EventType: events.EventChangePasswordUser,
 					},
 					Clustername:       cluster.Spec.Name,
-					Clusteridentifier: cluster.ObjectMeta.Labels[config.LABEL_PG_CLUSTER_IDENTIFIER],
 					PostgresUsername:  request.Username,
 					PostgresPassword:  request.Password,
 				}
@@ -645,8 +644,6 @@ func CreateUser(request *msgs.CreateUserRequest, pgouser string) msgs.CreateUser
 	resp.Status.Msg = ""
 	resp.Results = make([]string, 0)
 
-	
-
 	getDefaults()
 
 	log.Debugf("createUser selector is ", request.Selector)
@@ -758,7 +755,6 @@ func CreateUser(request *msgs.CreateUserRequest, pgouser string) msgs.CreateUser
 			PostgresUsername:  request.Username,
 			PostgresPassword:  newPassword,
 			Managed:           request.ManagedUser,
-			Clusteridentifier: c.ObjectMeta.Labels[config.LABEL_PG_CLUSTER_IDENTIFIER],
 		}
 
 		err = events.Publish(f)
@@ -899,7 +895,6 @@ func DeleteUser(request *msgs.DeleteUserRequest, pgouser string) msgs.DeleteUser
 			Clustername:       clusterName,
 			PostgresUsername:  request.Username,
 			Managed:           managed,
-			Clusteridentifier: cluster.ObjectMeta.Labels[config.LABEL_PG_CLUSTER_IDENTIFIER],
 		}
 
 		err = events.Publish(f)

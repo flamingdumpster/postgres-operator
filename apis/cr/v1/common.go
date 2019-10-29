@@ -26,6 +26,9 @@ const UserSecretSuffix = "-secret"
 // PrimarySecretSuffix ...
 const PrimarySecretSuffix = "-primaryuser-secret"
 
+// CollectSecretSuffix ...
+const CollectSecretSuffix = "-collect-secret"
+
 // StorageExisting ...
 const StorageExisting = "existing"
 
@@ -58,11 +61,13 @@ type PgContainerResources struct {
 	LimitsCPU      string `json:"limitscpu"`
 }
 
-// CompletedStatus - 
+// CompletedStatus -
 const CompletedStatus = "completed"
-// InProgressStatus - 
+
+// InProgressStatus -
 const InProgressStatus = "in progress"
-// SubmittedStatus - 
+
+// SubmittedStatus -
 const SubmittedStatus = "submitted"
 
 // JobCompletedStatus ....

@@ -47,9 +47,10 @@ type affinityTemplateFields struct {
 type collectTemplateFields struct {
 	Name            string
 	JobName         string
-	PrimaryPassword string
 	CCPImageTag     string
 	CCPImagePrefix  string
+	PgPort          string
+	ExporterPort    string
 }
 
 //consolidate
@@ -57,6 +58,7 @@ type badgerTemplateFields struct {
 	CCPImageTag        string
 	CCPImagePrefix     string
 	BadgerTarget       string
+	PGBadgerPort       string
 	ContainerResources string
 }
 
@@ -112,6 +114,7 @@ type DeploymentTemplateFields struct {
 	NodeSelector            string
 	ConfVolume              string
 	CollectAddon            string
+	CollectVolume           string
 	BadgerAddon             string
 	PgbackrestEnvVars       string
 	PgbackrestS3EnvVars     string
@@ -157,6 +160,7 @@ func GetBadgerAddon(clientset *kubernetes.Clientset, namespace string, cluster *
 		badgerTemplateFields := badgerTemplateFields{}
 		badgerTemplateFields.CCPImageTag = spec.CCPImageTag
 		badgerTemplateFields.BadgerTarget = pgbadger_target
+		badgerTemplateFields.PGBadgerPort = spec.PGBadgerPort
 		badgerTemplateFields.CCPImagePrefix = Pgo.Cluster.CCPImagePrefix
 		badgerTemplateFields.ContainerResources = ""
 
@@ -189,20 +193,21 @@ func GetCollectAddon(clientset *kubernetes.Clientset, namespace string, spec *cr
 
 	if spec.UserLabels[config.LABEL_COLLECT] == "true" {
 		log.Debug("crunchy_collect was found as a label on cluster create")
-		_, PrimaryPassword, err3 := util.GetPasswordFromSecret(clientset, namespace, spec.PrimarySecretName)
-		if err3 != nil {
-			log.Error(err3)
-		}
+
+		log.Debug("creating collect secret for cluster %s", spec.Name)
+		err := util.CreateSecret(clientset, spec.Name, spec.CollectSecretName, config.LABEL_COLLECT_PG_USER, 
+			Pgo.Cluster.PgmonitorPassword, namespace)
 
 		collectTemplateFields := collectTemplateFields{}
 		collectTemplateFields.Name = spec.Name
 		collectTemplateFields.JobName = spec.Name
-		collectTemplateFields.PrimaryPassword = PrimaryPassword
 		collectTemplateFields.CCPImageTag = spec.CCPImageTag
+		collectTemplateFields.ExporterPort = spec.ExporterPort
 		collectTemplateFields.CCPImagePrefix = Pgo.Cluster.CCPImagePrefix
+		collectTemplateFields.PgPort = spec.Port
 
 		var collectDoc bytes.Buffer
-		err := config.CollectTemplate.Execute(&collectDoc, collectTemplateFields)
+		err = config.CollectTemplate.Execute(&collectDoc, collectTemplateFields)
 		if err != nil {
 			log.Error(err.Error())
 			return ""
@@ -243,6 +248,15 @@ func GetConfVolume(clientset *kubernetes.Clientset, cl *crv1.Pgcluster, namespac
 
 	//the default situation
 	return "\"emptyDir\": { \"medium\": \"Memory\" }"
+}
+
+// sets the proper collect secret in the deployment spec if collect is enabled
+func GetCollectVolume(clientset *kubernetes.Clientset, cl *crv1.Pgcluster, namespace string) string {
+	if cl.Spec.UserLabels[config.LABEL_COLLECT] == "true" {
+		return "\"secret\": { \"secretName\": \"" + cl.Spec.CollectSecretName + "\" }"
+	}
+	
+	return "\"emptyDir\": { \"secretName\": \"Memory\" }"
 }
 
 // needs to be consolidated with cluster.GetLabelsFromMap
